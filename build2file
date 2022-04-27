@@ -1,0 +1,8 @@
+libs =
+#import libs += libhello%lib{hello}
+
+./: exe{fix-windows-symlinks} doc{README.md} manifest
+
+exe{fix-windows-symlinks}: {hxx ixx txx cxx}{*} $libs testscript
+
+cxx.poptions =+ "-I$out_root" "-I$src_root"
