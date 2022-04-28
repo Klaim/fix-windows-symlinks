@@ -13,5 +13,4 @@ depends: * bpkg >= 0.14.0
 requires: c++20
 
 depends: fmt ^8.0.0
-depends: libboost-process
 

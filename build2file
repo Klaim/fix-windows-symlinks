@@ -1,5 +1,5 @@
 libs =
-import libs += fmt%lib{fmt} libboost-process%lib{boost_process}
+import libs += fmt%lib{fmt}
 
 ./: exe{fix-windows-symlinks} doc{README.md} manifest
 
