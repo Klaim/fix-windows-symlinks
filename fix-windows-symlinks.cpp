@@ -16,17 +16,19 @@ int main (int argc, char* argv[])
 {
     const auto directory_to_scan = argc > 1 ?  fs::path{ argv[1] } : fs::current_path();
 
-    auto dir_symlinks = fs::recursive_directory_iterator(directory_to_scan)
-        | std::views::filter( [](const auto& entry){ return fs::is_symlink(entry.path()); })
-        | std::views::transform([](const auto& entry){
-            const auto target = fs::absolute(entry.path().parent_path() / fs::read_symlink(entry.path()));
-            return std::make_pair(entry.path(), target);
-        })
-        | std::views::filter( [](const auto& entry){ 
-            return fs::is_directory(entry.second);
-        });
-        
-    for( const auto& [symlink, target] : dir_symlinks )
+    auto dir_symlinks = [&]{
+        return fs::recursive_directory_iterator(directory_to_scan)
+            | std::views::filter( [](const auto& entry){ return fs::is_symlink(entry.path()); })
+            | std::views::transform([](const auto& entry){
+                const auto target = fs::absolute(entry.path().parent_path() / fs::read_symlink(entry.path()));
+                return std::make_pair(entry.path(), target);
+            })
+            | std::views::filter( [](const auto& entry){ 
+                return fs::is_directory(entry.second);
+            });
+    };
+
+    for( const auto& [symlink, target] : dir_symlinks() )
     { 
         fmt::print("symlink to recreate: {} -> {} ({}) \n", symlink, fs::read_symlink(symlink), target);
         assert(fs::is_directory(target));
@@ -50,10 +52,13 @@ int main (int argc, char* argv[])
         }
     } reset_working_path_before_exiting;
 
-    for( const auto& [symlink, target] : dir_symlinks )
+    for( const auto& [symlink, target] : dir_symlinks() )
     { 
         assert(fs::is_directory(target));
+        assert(fs::is_symlink(symlink));
+
         const auto relative_target = fs::read_symlink(symlink);
+        fmt::print("recreate: {} -> {} ({}) \n", symlink, relative_target, target);
 
         fs::remove(symlink);
         assert(!fs::is_symlink(symlink));
